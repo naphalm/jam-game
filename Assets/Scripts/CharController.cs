@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using TMPro;
+using UnityEngine.UI;
+using Unity.VisualScripting;
 
 public class CharController : MonoBehaviour
 {
@@ -10,13 +13,15 @@ public class CharController : MonoBehaviour
 	public Collider2D attackCollider;
 	public Collider2D moveCheckCollider;
 	public int titlesToMove;
-	private bool canItMove;
-	private GameObject target=null;
+	static public bool canItMove;
+	private enemyScript target =null;
 	private bool targetExists;
 	public LayerMask stopsMove;
+	public GameObject attackButton;
 	
 	void Start()
 	{
+		attackButton.SetActive(false);
 		canItMove = true;
 	}
 	public void Move()
@@ -31,19 +36,26 @@ public class CharController : MonoBehaviour
 		}
 		
 	}
-	private void OnCollisionEnter2D(Collision2D collision)
+	private void OnTriggerEnter2D(Collider2D collision)
 	{
-		if (collision.gameObject.tag == "Obstacle" || collision.gameObject.tag=="Enemy")
+		if (collision.gameObject.tag == "Obstacle")
 		{
 			canItMove = false;
 			Debug.Log("Collision with obstcle");
 		}
 		if(collision.gameObject.tag == "Enemy")
 		{
-			target=collision.gameObject;
+			attackButton.SetActive(true);
+			canItMove = false;
+			target=collision.gameObject.GetComponent<enemyScript>();
+			target.EnemyDeath.AddListener(OnEnemyTargetDeath);
 			targetExists = true;
 			Debug.Log("Collison with enemy");
 		}
+	}
+	private void OnTriggerExit2D(Collider2D collision)
+	{
+		
 	}
 	public void Attack()
 	{
@@ -52,9 +64,12 @@ public class CharController : MonoBehaviour
 	}
 	public void Update()
 	{
-		if (!Physics2D.OverlapCircle(movePoint.position, stopsMove)){
-			canItMove = true;
-			Debug.Log("cant move(based on layer)");
-		}
+
+	}
+
+	private void OnEnemyTargetDeath()
+	{
+		target = null;
+		canItMove = true;
 	}
 }
